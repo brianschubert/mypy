@@ -320,16 +320,16 @@ class PatternChecker(PatternVisitor[PatternType]):
             if all(is_uninhabited(typ) for typ in inner_rest_types):
                 # All subpatterns always match, so we can apply negative narrowing
                 rest_type = TupleType(rest_inner_types, current_type.partial_fallback)
-            # elif sum(not is_uninhabited(typ) for typ in inner_rest_types) == 1:
-            #     # Exactly one subpattern may conditionally match, the rest always match.
-            #     # We can apply negative narrowing to this one position.
-            #     rest_type = TupleType(
-            #         [
-            #             curr if is_uninhabited(rest) else rest
-            #             for curr, rest in zip(inner_types, inner_rest_types)
-            #         ],
-            #         current_type.partial_fallback,
-            #     )
+            elif sum(not is_uninhabited(typ) for typ in inner_rest_types) == 1:
+                # Exactly one subpattern may conditionally match, the rest always match.
+                # We can apply negative narrowing to this one position.
+                rest_type = TupleType(
+                    [
+                        curr if is_uninhabited(rest) else rest
+                        for curr, rest in zip(inner_types, inner_rest_types)
+                    ],
+                    current_type.partial_fallback,
+                )
         elif isinstance(current_type, TupleType):
             # For variadic tuples it is too tricky to match individual items like for fixed
             # tuples, so we instead try to narrow the entire type.
