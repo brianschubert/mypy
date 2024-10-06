@@ -606,6 +606,19 @@ e: Literal[dummy()]             # E: Invalid type: Literal[...] cannot contain a
 [builtins fixtures/tuple.pyi]
 [out]
 
+[case testLiteralDisallowUnionExpressions]
+from enum import Flag, auto
+from typing_extensions import Literal
+
+class Color(Flag):
+    RED = auto()
+    GREEN = auto()
+
+a: Literal[True | False]                # E: Invalid type: Literal[...] cannot contain arbitrary expressions
+b: Literal[1, 2 | None]                 # E: Invalid type: Literal[...] cannot contain arbitrary expressions
+c: Literal[Color.RED | Color.GREEN]     # E: Invalid type: Literal[...] cannot contain arbitrary expressions
+[builtins fixtures/primitives.pyi]
+
 [case testLiteralDisallowCollections]
 from typing_extensions import Literal
 a: Literal[{"a": 1, "b": 2}]    # E: Parameter 1 of Literal[...] is invalid

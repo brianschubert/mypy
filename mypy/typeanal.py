@@ -1714,6 +1714,13 @@ class TypeAnalyser(SyntheticTypeVisitor[Type], TypeAnalyzerPluginInterface):
         elif isinstance(arg, UnionType):
             out = []
             for union_arg in arg.items:
+                if isinstance(union_arg, (UnboundType, RawExpressionType)):
+                    self.fail(
+                        "Invalid type: Literal[...] cannot contain arbitrary expressions",
+                        ctx,
+                        code=codes.VALID_TYPE,
+                    )
+                    return None
                 union_result = self.analyze_literal_param(idx, union_arg, ctx)
                 if union_result is None:
                     return None
