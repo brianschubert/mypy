@@ -779,6 +779,10 @@ def get_search_dirs(python_executable: str | None) -> tuple[list[str], list[str]
         except OSError as err:
             # errno is None only for TimeoutError, which can't happen here.
             assert err.errno is not None
+            # err.strerror differs for os.stat failures between Windows and
+            # other systems, but os.strerror(err.errno) does not, so we use that.
+            # (We want the error messages to be platform-independent so that the
+            # tests have predictable output.)
             reason = os.strerror(err.errno)
             raise CompileError(
                 [f"mypy: Invalid python executable '{python_executable}': {reason}"]
