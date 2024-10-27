@@ -2136,6 +2136,8 @@ class State:
                     source = decode_python_encoding(manager.fscache.read(path))
                     self.source_hash = manager.fscache.hash_digest(path)
                 except OSError as ioerr:
+                    # errno is None only for TimeoutError, which can't happen here.
+                    assert ioerr.errno is not None
                     # ioerr.strerror differs for os.stat failures between Windows and
                     # other systems, but os.strerror(ioerr.errno) does not, so we use that.
                     # (We want the error messages to be platform-independent so that the
