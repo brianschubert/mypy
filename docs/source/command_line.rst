@@ -883,6 +883,10 @@ Advanced options
 The following flags are useful mostly for people who are interested
 in developing or debugging mypy internals.
 
+.. option:: --plugins
+
+    A comma-separated list of mypy plugins. See :ref:`extending-mypy-using-plugins`.
+
 .. option:: --pdb
 
     This flag will invoke the Python debugger when mypy encounters

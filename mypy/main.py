@@ -14,6 +14,7 @@ from typing import IO, Any, Final, NoReturn, Sequence, TextIO
 from mypy import build, defaults, state, util
 from mypy.config_parser import (
     get_config_module_names,
+    ini_config_types,
     parse_config_file,
     parse_version,
     validate_package_allow_list,
@@ -1006,6 +1007,11 @@ def process_options(
 
     internals_group = parser.add_argument_group(
         title="Advanced options", description="Debug and customize mypy internals."
+    )
+    internals_group.add_argument(
+        "--plugins",
+        type=ini_config_types["plugins"],
+        help="A comma-separated list of mypy plugins",
     )
     internals_group.add_argument("--pdb", action="store_true", help="Invoke pdb on fatal error")
     internals_group.add_argument(
