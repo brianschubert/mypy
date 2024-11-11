@@ -1726,7 +1726,8 @@ class ASTConverter:
 
     # Slice(expr? lower, expr? upper, expr? step)
     def visit_Slice(self, n: ast3.Slice) -> SliceExpr:
-        return SliceExpr(self.visit(n.lower), self.visit(n.upper), self.visit(n.step))
+        e = SliceExpr(self.visit(n.lower), self.visit(n.upper), self.visit(n.step))
+        return self.set_line(e, n)
 
     # ExtSlice(slice* dims)
     def visit_ExtSlice(self, n: ast3.ExtSlice) -> TupleExpr:

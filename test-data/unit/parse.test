@@ -3171,10 +3171,10 @@ MypyFile:1(
     IndexExpr:1(
       NameExpr(a)
       TupleExpr:1(
-        SliceExpr:-1(
+        SliceExpr:1(
           <empty>
           <empty>)
-        SliceExpr:-1(
+        SliceExpr:1(
           <empty>
           <empty>)))))
 
@@ -3186,10 +3186,10 @@ MypyFile:1(
     IndexExpr:1(
       NameExpr(a)
       TupleExpr:1(
-        SliceExpr:-1(
+        SliceExpr:1(
           IntExpr(1)
           IntExpr(2))
-        SliceExpr:-1(
+        SliceExpr:1(
           <empty>
           <empty>)))))
 
@@ -3201,7 +3201,7 @@ MypyFile:1(
     IndexExpr:1(
       NameExpr(a)
       TupleExpr:1(
-        SliceExpr:-1(
+        SliceExpr:1(
           IntExpr(1)
           IntExpr(2)
           IntExpr(3))
