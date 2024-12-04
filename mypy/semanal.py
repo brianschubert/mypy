@@ -2100,8 +2100,11 @@ class SemanticAnalyzer(
                     for deco in defn.decorators:
                         deco.accept(self)
                         self.analyze_class_decorator_common(defn, defn.info, deco)
+                    prior_names = set(info.names)
                     with self.named_tuple_analyzer.save_namedtuple_body(info):
                         self.analyze_class_body_common(defn)
+                    if not set(info.names).difference(prior_names):
+                        self.progress = False
             return True
         return False
 

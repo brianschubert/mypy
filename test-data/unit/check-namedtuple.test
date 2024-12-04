@@ -1441,3 +1441,15 @@ def bar() -> None:
             misspelled_var_name  # E: Name "misspelled_var_name" is not defined
 [builtins fixtures/tuple.pyi]
 [typing fixtures/typing-namedtuple.pyi]
+
+[case testFollowImportsSkipImportlibWithNamedTupleNoCrash_NoUseBuiltinsFixtures]
+# This was crashing. See https://github.com/python/mypy/issues/18237
+# flags: --config-file tmp/config.ini
+from typing import NamedTuple
+class A(NamedTuple):
+    def f(self) -> None: pass
+[file config.ini]
+\[mypy]
+\[mypy-importlib.*]
+follow_imports = skip
+follow_imports_for_stubs = True

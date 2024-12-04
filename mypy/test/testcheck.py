@@ -128,7 +128,7 @@ class TypeCheckSuite(DataSuite):
 
         # Parse options after moving files (in case mypy.ini is being moved).
         options = parse_options(original_program_text, testcase, incremental_step)
-        options.use_builtins_fixtures = True
+        options.use_builtins_fixtures = "_NoUseBuiltinsFixtures" not in testcase.name
         options.show_traceback = True
 
         # Enable some options automatically based on test file name.
