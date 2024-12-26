@@ -259,3 +259,15 @@ def foo():
                 continue  # E: "continue" not allowed in except* block
             return  # E: "return" not allowed in except* block
 [builtins fixtures/exception.pyi]
+
+[case testStarExpressionInInvalidIndex]
+from typing import Tuple
+class A:
+    def __getitem__(self, key: Tuple[int, ...]) -> None: ...
+
+a: A
+b: Tuple[str, ...]
+# Ideally, this should emit a clearer "Invalid index type" error.
+a[*b, :]  # E: Argument 1 to <tuple> has incompatible type "*Tuple[str, ...]"; expected "int" \
+          # E: Argument 2 to <tuple> has incompatible type "slice[None, None, None]"; expected "int"
+[builtins fixtures/tuple.pyi]
