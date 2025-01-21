@@ -1295,3 +1295,31 @@ x2: Explicit[str]  # E: Bad number of arguments for type alias, expected 0, give
 assert_type(x1, Callable[..., Any])
 assert_type(x2, Callable[..., Any])
 [builtins fixtures/tuple.pyi]
+
+[case testAliasExplicitNoArgsBasicWithIsinstance]
+from typing import List
+from typing_extensions import TypeAlias
+
+Implicit = List
+Explicit: TypeAlias = List
+
+def f1(x: object) -> bool:
+    return isinstance(x, Implicit)
+
+def f2(x: object) -> bool:
+    return isinstance(x, Explicit)
+[builtins fixtures/tuple.pyi]
+
+[case testAliasExplicitNoArgsGenericClassWithIsinstance]
+# flags: --python-version 3.9
+from typing_extensions import TypeAlias
+
+Implicit = list
+Explicit: TypeAlias = list
+
+def f1(x: object) -> bool:
+    return isinstance(x, Implicit)
+
+def f2(x: object) -> bool:
+    return isinstance(x, Explicit)
+[builtins fixtures/tuple.pyi]
