@@ -1308,6 +1308,13 @@ def f1(x: object) -> bool:
 
 def f2(x: object) -> bool:
     return isinstance(x, Explicit)
+
+def f3(x: object) -> bool:
+    return isinstance(x, Implicit[int])  # E: Parameterized generics cannot be used with class or instance checks
+
+def f4(x: object) -> bool:
+    return isinstance(x, Explicit[int])  # E: Parameterized generics cannot be used with class or instance checks \
+                                         # E: Bad number of arguments for type alias, expected 0, given 1
 [builtins fixtures/tuple.pyi]
 
 [case testAliasExplicitNoArgsGenericClassWithIsinstance]
@@ -1322,4 +1329,11 @@ def f1(x: object) -> bool:
 
 def f2(x: object) -> bool:
     return isinstance(x, Explicit)
+
+def f3(x: object) -> bool:
+    return isinstance(x, Implicit[int])  # E: Parameterized generics cannot be used with class or instance checks
+
+def f4(x: object) -> bool:
+    return isinstance(x, Explicit[int])  # E: Parameterized generics cannot be used with class or instance checks \
+                                         # E: Bad number of arguments for type alias, expected 0, given 1
 [builtins fixtures/tuple.pyi]
