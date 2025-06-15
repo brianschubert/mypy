@@ -431,6 +431,7 @@ def get_text_signature(fn: FuncIR) -> str | None:
             # Parameter.__init__ does not accept $
             curr_param._name = f"${arg.name}"  # type: ignore[attr-defined]
             mark_self = False
+    print(f"{parameters=}")
     sig = inspect.Signature(parameters)
     return f"{fn.name}{sig}"
 
