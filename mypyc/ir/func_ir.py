@@ -416,7 +416,9 @@ def get_text_signature(fn: FuncIR) -> str | None:
         if arg.name.startswith("__bitmap") or arg.name == "__mypyc_self__":
             continue
         kind = (
-            inspect.Parameter.POSITIONAL_ONLY if arg.pos_only else _ARG_KIND_TO_INSPECT[arg.kind]
+            inspect.Parameter.POSITIONAL_ONLY
+            if (arg.pos_only and not arg.name.startswith("__"))
+            else _ARG_KIND_TO_INSPECT[arg.kind]
         )
         default: object = inspect.Parameter.empty
         if arg.optional:
