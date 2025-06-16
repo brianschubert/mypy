@@ -316,7 +316,9 @@ non-exhaustive list of what won't work:
 - Instance ``__annotations__`` is usually not kept
 - Frames of compiled functions can't be inspected using ``inspect``
 - Compiled methods aren't considered methods by ``inspect.ismethod``
-- ``inspect.signature`` chokes on compiled functions
+- ``inspect.signature`` chokes on compiled functions with complex default arguments
+  (anything other than ``str``, ``int``, ``float``, ``bytes``, ``bool``, ``None``,
+  or ``tuple`` literals)
 
 Profiling hooks and tracing
 ***************************
