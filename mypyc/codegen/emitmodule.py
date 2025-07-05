@@ -54,7 +54,7 @@ from mypyc.common import (
 )
 from mypyc.errors import Errors
 from mypyc.ir.func_ir import FuncIR
-from mypyc.ir.module_ir import ModuleIR, ModuleIRs, deserialize_modules
+from mypyc.ir.module_ir import ModuleIR, ModuleIRs, deserialize_modules, get_module_top_level
 from mypyc.ir.ops import DeserMaps, LoadLiteral
 from mypyc.ir.rtypes import RType
 from mypyc.irbuild.main import build_ir
@@ -567,7 +567,7 @@ class GroupGenerator:
 
             for cl in module.classes:
                 if cl.is_ext_class:
-                    generate_class(cl, module_name, emitter)
+                    generate_class(cl, module, emitter)
 
             # Generate Python extension module definitions and module initialization functions.
             self.generate_module_def(emitter, module_name, module)
@@ -919,7 +919,7 @@ class GroupGenerator:
                 flag = "METH_FASTCALL"
             else:
                 flag = "METH_VARARGS"
-            doc = native_function_doc_initializer(fn)
+            doc = native_function_doc_initializer(fn, get_module_top_level(module))
             emitter.emit_line(
                 (
                     '{{"{name}", (PyCFunction){prefix}{cname}, {flag} | METH_KEYWORDS, '

@@ -113,8 +113,8 @@ def native_function_header(fn: FuncDecl, emitter: Emitter) -> str:
     )
 
 
-def native_function_doc_initializer(func: FuncIR) -> str:
-    text_sig = get_text_signature(func)
+def native_function_doc_initializer(func: FuncIR, module_body: FuncIR) -> str:
+    text_sig = get_text_signature(func, module_body)
     if text_sig is None:
         return "NULL"
     docstring = f"{text_sig}\n--\n\n"

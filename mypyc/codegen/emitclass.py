@@ -29,6 +29,7 @@ from mypyc.ir.func_ir import (
     FuncIR,
     get_text_signature,
 )
+from mypyc.ir.module_ir import ModuleIR, get_module_top_level
 from mypyc.ir.rtypes import RTuple, RType, object_rprimitive
 from mypyc.namegen import NameGenerator
 from mypyc.sametype import is_same_type
@@ -193,7 +194,7 @@ def generate_class_type_decl(
         )
 
 
-def generate_class(cl: ClassIR, module: str, emitter: Emitter) -> None:
+def generate_class(cl: ClassIR, module: ModuleIR, emitter: Emitter) -> None:
     """Generate C code for a class.
 
     This is the main entry point to the module.
@@ -333,7 +334,7 @@ def generate_class(cl: ClassIR, module: str, emitter: Emitter) -> None:
     if cl.is_trait:
         generate_new_for_trait(cl, new_name, emitter)
 
-    generate_methods_table(cl, methods_name, emitter)
+    generate_methods_table(cl, methods_name, emitter, module)
     emit_line()
 
     flags = ["Py_TPFLAGS_DEFAULT", "Py_TPFLAGS_HEAPTYPE", "Py_TPFLAGS_BASETYPE"]
@@ -352,7 +353,7 @@ def generate_class(cl: ClassIR, module: str, emitter: Emitter) -> None:
         flags.append("Py_TPFLAGS_MANAGED_DICT")
     fields["tp_flags"] = " | ".join(flags)
 
-    fields["tp_doc"] = native_class_doc_initializer(cl)
+    fields["tp_doc"] = native_class_doc_initializer(cl, get_module_top_level(module))
 
     emitter.emit_line(f"static PyTypeObject {emitter.type_struct_name(cl)}_template_ = {{")
     emitter.emit_line("PyVarObject_HEAD_INIT(NULL, 0)")
@@ -837,7 +838,7 @@ def generate_finalize_for_class(
     emitter.emit_line("}")
 
 
-def generate_methods_table(cl: ClassIR, name: str, emitter: Emitter) -> None:
+def generate_methods_table(cl: ClassIR, name: str, emitter: Emitter, module: ModuleIR) -> None:
     emitter.emit_line(f"static PyMethodDef {name}[] = {{")
     for fn in cl.methods.values():
         if fn.decl.is_prop_setter or fn.decl.is_prop_getter or fn.internal:
@@ -850,7 +851,7 @@ def generate_methods_table(cl: ClassIR, name: str, emitter: Emitter) -> None:
         elif fn.decl.kind == FUNC_CLASSMETHOD:
             flags.append("METH_CLASS")
 
-        doc = native_function_doc_initializer(fn)
+        doc = native_function_doc_initializer(fn, get_module_top_level(module))
         emitter.emit_line(" {}, {}}},".format(" | ".join(flags), doc))
 
     # Provide a default __getstate__ and __setstate__
@@ -1111,10 +1112,10 @@ def has_managed_dict(cl: ClassIR, emitter: Emitter) -> bool:
     )
 
 
-def native_class_doc_initializer(cl: ClassIR) -> str:
+def native_class_doc_initializer(cl: ClassIR, module_body: FuncIR) -> str:
     init_fn = cl.get_method("__init__")
     if init_fn is not None:
-        text_sig = get_text_signature(init_fn, bound=True)
+        text_sig = get_text_signature(init_fn, module_body, bound=True)
         if text_sig is None:
             return "NULL"
         text_sig = text_sig.replace("__init__", cl.name, 1)

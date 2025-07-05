@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from mypyc.common import JsonDict
+from mypyc.common import TOP_LEVEL_NAME, JsonDict
 from mypyc.ir.class_ir import ClassIR
 from mypyc.ir.func_ir import FuncDecl, FuncIR
 from mypyc.ir.ops import DeserMaps
@@ -90,3 +90,11 @@ def deserialize_modules(data: dict[str, JsonDict], ctx: DeserMaps) -> dict[str, 
 # ModulesIRs should also always be an *OrderedDict*, but if we
 # declared it that way we would need to put it in quotes everywhere...
 ModuleIRs = dict[str, ModuleIR]
+
+
+def get_module_top_level(module: ModuleIR) -> FuncIR:
+    # Optimization: we tend to put the top level last, so reverse iterate
+    for fn in reversed(module.functions):
+        if fn.name == TOP_LEVEL_NAME:
+            return fn
+    assert False, f"module '{module.fullname}' missing '{TOP_LEVEL_NAME}' function"

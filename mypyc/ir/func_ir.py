@@ -13,13 +13,20 @@ from mypyc.ir.ops import (
     AssignMulti,
     BasicBlock,
     Box,
+    CallC,
     ControlOp,
     DeserMaps,
     Float,
+    GetElementPtr,
+    InitStatic,
     Integer,
+    IntOp,
     LoadAddress,
     LoadLiteral,
+    LoadMem,
+    LoadStatic,
     Register,
+    SetMem,
     TupleSet,
     Value,
 )
@@ -406,7 +413,7 @@ _ARG_KIND_TO_INSPECT: Final = {
 _NOT_REPRESENTABLE = object()
 
 
-def get_text_signature(fn: FuncIR, *, bound: bool = False) -> str | None:
+def get_text_signature(fn: FuncIR, module_body: FuncIR, *, bound: bool = False) -> str | None:
     """Return a text signature in CPython's internal doc format, or None
     if the function's signature cannot be represented.
     """
@@ -430,7 +437,7 @@ def get_text_signature(fn: FuncIR, *, bound: bool = False) -> str | None:
         )
         default: object = inspect.Parameter.empty
         if arg.optional:
-            default = _find_default_argument(arg.name, fn.blocks)
+            default = _find_default_argument(arg.name, fn.blocks, module_body.blocks)
             if default is _NOT_REPRESENTABLE:
                 # This default argument cannot be represented in a __text_signature__
                 return None
@@ -444,16 +451,29 @@ def get_text_signature(fn: FuncIR, *, bound: bool = False) -> str | None:
     return f"{fn.name}{inspect.Signature(parameters)}"
 
 
-def _find_default_argument(name: str, blocks: list[BasicBlock]) -> object:
+def _find_default_argument(
+    name: str, blocks: list[BasicBlock], static_blocks: list[BasicBlock]
+) -> object:
     # Find assignment inserted by gen_arg_defaults. Assumed to be the first assignment.
     for block in blocks:
         for op in block.ops:
             if isinstance(op, Assign) and op.dest.name == name:
-                return _extract_python_literal(op.src)
+                if isinstance(op.src, LoadStatic):
+                    return _find_init_static(op.src.identifier, static_blocks)
+                else:
+                    return _extract_python_literal(op.src, blocks)
     return _NOT_REPRESENTABLE
 
 
-def _extract_python_literal(value: Value) -> object:
+def _find_init_static(fullname: str, blocks: list[BasicBlock]) -> object:
+    for block in blocks:
+        for op in block.ops:
+            if isinstance(op, InitStatic) and op.identifier == fullname:
+                return _extract_python_literal(op.value, blocks)
+    return _NOT_REPRESENTABLE
+
+
+def _extract_python_literal(value: Value, blocks: list[BasicBlock]) -> object:
     if isinstance(value, Integer):
         if is_none_rprimitive(value.type):
             return None
@@ -466,10 +486,66 @@ def _extract_python_literal(value: Value) -> object:
     elif isinstance(value, LoadLiteral):
         return value.value
     elif isinstance(value, Box):
-        return _extract_python_literal(value.src)
+        return _extract_python_literal(value.src, blocks)
     elif isinstance(value, TupleSet):
-        items = tuple(_extract_python_literal(item) for item in value.items)
+        items = tuple(_extract_python_literal(item, blocks) for item in value.items)
         if any(itm is _NOT_REPRESENTABLE for itm in items):
             return _NOT_REPRESENTABLE
         return items
+    elif isinstance(value, CallC):
+        if value.function_name == "PyList_New":
+            assert len(value.args) == 1
+            size = _extract_python_literal(value.args[0], blocks)
+            if size == 0:
+                return []
+            return _extract_list(value, blocks)
+        if value.function_name == "PyDict_New":
+            return {}
+        if value.function_name == "CPyDict_Build":
+            args = [_extract_python_literal(arg, blocks) for arg in value.args]
+            if any(arg is _NOT_REPRESENTABLE for arg in args):
+                return _NOT_REPRESENTABLE
+            return {k: v for k, v in zip(args[1::2], args[2::2])}
+        if value.function_name == "PySet_New":
+            result = _extract_set(value, blocks)
+            if not result:
+                return _NOT_REPRESENTABLE  # set() isn't valid in __text_signature__
+            return result
+    elif isinstance(value, LoadAddress) and value.src == "_Py_EllipsisObject":
+        return _EllipsisLiteral()
     return _NOT_REPRESENTABLE
+
+
+def _extract_list(value: CallC, blocks: list[BasicBlock]) -> object:
+    result = []
+    for block in blocks:
+        for op in block.ops:
+            if isinstance(op, SetMem):
+                dest = op.dest.lhs if isinstance(op.dest, IntOp) else op.dest
+                if (
+                    isinstance(dest, LoadMem)
+                    and isinstance(dest.src, GetElementPtr)
+                    and dest.src.src == value
+                ):
+                    item = _extract_python_literal(op.src, blocks)
+                    if item is _NOT_REPRESENTABLE:
+                        return _NOT_REPRESENTABLE
+                    result.append(item)
+    return result
+
+
+def _extract_set(value: CallC, blocks: list[BasicBlock]) -> object:
+    result = set()
+    for block in blocks:
+        for op in block.ops:
+            if isinstance(op, CallC) and op.function_name == "PySet_Add" and op.args[0] == value:
+                item = _extract_python_literal(op.args[1], blocks)
+                if item is _NOT_REPRESENTABLE:
+                    return _NOT_REPRESENTABLE
+                result.add(item)
+    return result
+
+
+class _EllipsisLiteral:
+    def __repr__(self) -> str:
+        return "..."

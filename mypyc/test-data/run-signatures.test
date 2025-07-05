@@ -42,6 +42,16 @@ def default_tuple_empty(x=()): pass
 def default_tuple_literals(x=(1, "a", 1.0, False, True, None, (), (1,2,(3,4)))): pass
 def default_tuple_singleton(x=(1,)): pass
 def default_named_constant(x=A): pass
+def default_complex(x=1+2j): pass
+def default_list_empty(x=[]): pass
+def default_list_literals(x=[1, 2, 3]): pass
+def default_dict_empty(x={}): pass
+def default_dict_literals(x={'a': 1}): pass
+def default_set_literals(x={1, 2, 3}): pass
+def default_tuple_collections(x=([1], {2}, {3: 4})): pass
+def default_nested_collections(x={'list': [1], 'set': {2}, 'dict': {3: 4}}): pass
+def default_literal_fold(x=1+2): pass
+def default_ellipsis(x=...): pass
 
 [file driver.py]
 import inspect
@@ -56,6 +66,16 @@ assert str(inspect.signature(default_none)) == "(x=None)"
 assert str(inspect.signature(default_tuple_empty)) == "(x=())"
 assert str(inspect.signature(default_tuple_literals)) == "(x=(1, 'a', 1.0, False, True, None, (), (1, 2, (3, 4))))"
 assert str(inspect.signature(default_named_constant)) == "(x=1)"
+assert str(inspect.signature(default_complex)) == "(x=(1+2j))"
+assert str(inspect.signature(default_list_empty)) == "(x=[])"
+assert str(inspect.signature(default_list_literals)) == "(x=[1, 2, 3])"
+assert str(inspect.signature(default_dict_empty)) == "(x={})"
+assert str(inspect.signature(default_dict_literals)) == "(x={'a': 1})"
+assert str(inspect.signature(default_set_literals)) == "(x={1, 2, 3})"
+assert str(inspect.signature(default_tuple_collections)) == "(x=([1], {2}, {3: 4}))"
+assert str(inspect.signature(default_nested_collections)) == "(x={'list': [1], 'set': {2}, 'dict': {3: 4}})"
+assert str(inspect.signature(default_literal_fold)) == "(x=3)"
+assert str(inspect.signature(default_ellipsis)) == "(x=Ellipsis)"
 
 # Check __text_signature__ directly since inspect.signature produces
 # an incorrect signature for 1-tuple default arguments prior to
@@ -94,19 +114,6 @@ def bad_set_nonliteral(x={misc}): pass
 def bad_set_empty(x=set()): pass  # supported by ast.literal_eval, but not by inspect._signature_fromstr
 def bad_nan(x=float("nan")): pass
 def bad_enum(x=Color.RED): pass
-
-# TODO: Default arguments that could potentially be represented in a
-# __text_signature__, but which are not currently supported.
-# See 'inspect._signature_fromstr' for what default values are supported at runtime.
-def bad_complex(x=1+2j): pass
-def bad_list_empty(x=[]): pass
-def bad_list_literals(x=[1, 2, 3]): pass
-def bad_dict_empty(x={}): pass
-def bad_dict_literals(x={'a': 1}): pass
-def bad_set_literals(x={1, 2, 3}): pass
-def bad_tuple_literals(x=([1, 2, 3], {'a': 1}, {1, 2, 3})): pass
-def bad_ellipsis(x=...): pass
-def bad_literal_fold(x=1+2): pass
 
 [file driver.py]
 import inspect
@@ -155,7 +162,7 @@ class HasInit:
 class InheritedInit(HasInit): pass
 
 class HasInitBad:
-    def __init__(self, x=[]) -> None: pass
+    def __init__(self, x=object()) -> None: pass
 
 [file driver.py]
 import inspect
