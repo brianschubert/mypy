@@ -1660,8 +1660,9 @@ def get_mypy_type_of_runtime_value(runtime: Any) -> mypy.types.Type | None:
     """
     if runtime is None:
         return mypy.types.NoneType()
-    if isinstance(runtime, property):
-        # Give up on properties to avoid issues with things that are typed as attributes.
+    if isinstance(runtime, (property, collections._tuplegetter)):
+        # Give up on properties and named tuple fields to avoid issues with
+        # things that are typed as attributes.
         return None
 
     def anytype() -> mypy.types.AnyType:
