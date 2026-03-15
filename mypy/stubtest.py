@@ -71,7 +71,6 @@ class Unrepresentable:
 
 UNREPRESENTABLE: Final = Unrepresentable()
 
-
 _formatter: Final = FancyFormatter(sys.stdout, sys.stderr, False)
 
 
@@ -1328,6 +1327,13 @@ def verify_var(
             stub,
             runtime,
             stub_desc=repr(stub.final_value),
+        )
+    elif (
+        isinstance(p := mypy.types.get_proper_type(stub.type), mypy.types.Instance)
+        and p.type.is_type_check_only
+    ):
+        yield from verify_typeinfo(
+            p.type, type(runtime), object_path + ["__class__"], is_alias_target=True
         )
 
 
