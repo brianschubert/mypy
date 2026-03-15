@@ -905,8 +905,9 @@ class StubtestUnit(unittest.TestCase):
     def test_decorated_overload(self) -> Iterator[Case]:
         yield Case(
             stub="""
-            from typing import overload
+            from typing import overload, type_check_only
 
+            @type_check_only
             class _dec1:
                 def __init__(self, func: object) -> None: ...
                 def __call__(self, x: str) -> str: ...
@@ -922,6 +923,7 @@ class StubtestUnit(unittest.TestCase):
         )
         yield Case(
             stub="""
+            @type_check_only
             class _dec2:
                 def __init__(self, func: object) -> None: ...
                 def __call__(self, x: str, y: int) -> str: ...
@@ -937,6 +939,7 @@ class StubtestUnit(unittest.TestCase):
         )
         yield Case(
             stub="""
+            @type_check_only
             class _dec3:
                 def __init__(self, func: object) -> None: ...
                 def __call__(self, x: str, y: int) -> str: ...
