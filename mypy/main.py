@@ -97,9 +97,20 @@ def main(
         stdout, stderr, options.hide_error_codes, hide_success=bool(options.output)
     )
 
+    if options.num_workers:
+        # Supporting both parsers would be really tricky, so just support the new one.
+        options.native_parser = True
+
     if options.allow_redefinition_new and not options.local_partial_types:
         fail(
             "error: --local-partial-types must be enabled if using --allow-redefinition-new",
+            stderr,
+            options,
+        )
+
+    if options.allow_redefinition_new and options.allow_redefinition_old:
+        fail(
+            "--allow-redefinition-old and --allow-redefinition-new should not be used together",
             stderr,
             options,
         )
@@ -1245,6 +1256,8 @@ def define_options(
     # --local-partial-types disallows partial types spanning module top level and a function
     # (implicitly defined in fine-grained incremental mode)
     add_invertible_flag("--local-partial-types", default=False, help=argparse.SUPPRESS)
+    # --native-parser enables the native parser (experimental)
+    add_invertible_flag("--native-parser", default=False, help=argparse.SUPPRESS)
     # --logical-deps adds some more dependencies that are not semantically needed, but
     # may be helpful to determine relative importance of classes and functions for overall
     # type precision in a code base. It also _removes_ some deps, so this flag should be never
