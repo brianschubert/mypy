@@ -2822,6 +2822,53 @@ assert annotations
             runtime="class _P2: ...",
             error="_P2",
         )
+        # Private TypedDicts which do not exist at runtime must be decorated with
+        # '@type_check_only', unless they contain keys that are not valid identifiers.
+        yield Case(
+            stub="""
+            class _TD1(TypedDict): ...
+            """,
+            runtime="",
+            error="_TD1",
+        )
+        yield Case(
+            stub="""
+            _TD2 = TypedDict("_TD2", {"foo": int})
+            """,
+            runtime="",
+            error="_TD2",
+        )
+        yield Case(
+            stub="""
+            _TD3 = TypedDict("_TD3", {"foo-bar": int})
+            """,
+            runtime="",
+            error=None,
+        )
+        yield Case(
+            stub="""
+            _TD4 = TypedDict("_TD4", {"class": int})
+            """,
+            runtime="",
+            error=None,
+        )
+        # Private NamedTuples which do not exist at runtime must be decorated with
+        # '@type_check_only'.
+        yield Case(
+            stub="""
+            class _NT1(NamedTuple): ...
+            """,
+            runtime="",
+            error="_NT1",
+        )
+        yield Case(
+            stub="""
+            @type_check_only
+            class _NT2(NamedTuple): ...
+            """,
+            runtime="",
+            error=None,
+        )
         # A type that exists at runtime is allowed to alias a type marked
         # as '@type_check_only' in the stubs.
         yield Case(
