@@ -146,6 +146,11 @@ class Error:
         # TODO: This is hacky, use error codes or something more resilient
         return "@disjoint_base" in self.message
 
+    def is_private_type_check_only_related(self) -> bool:
+        """Whether or not the error is related to @type_check_only on private types."""
+        # TODO: This is hacky, use error codes or something more resilient
+        return self.message.endswith('Maybe mark it as "@type_check_only"?')
+
     def get_description(self, concise: bool = False) -> str:
         """Returns a description of the error.
 
@@ -2330,6 +2335,7 @@ class _Arguments:
     ignore_missing_stub: bool
     ignore_positional_only: bool
     ignore_disjoint_bases: bool
+    strict_type_check_only: bool
     allowlist: list[str]
     generate_allowlist: bool
     ignore_unused_allowlist: bool
@@ -2429,6 +2435,8 @@ def test_stubs(args: _Arguments, use_builtins_fixtures: bool = False) -> int:
             if error.object_desc in allowlist:
                 allowlist[error.object_desc] = True
                 continue
+            if not args.strict_type_check_only and error.is_private_type_check_only_related():
+                continue
             is_allowlisted = False
             for w in allowlist:
                 if allowlist_regexes[w].fullmatch(error.object_desc):
@@ -2521,6 +2529,11 @@ def parse_options(args: list[str]) -> _Arguments:
         "--ignore-disjoint-bases",
         action="store_true",
         help="Disable checks for PEP 800 @disjoint_base classes",
+    )
+    parser.add_argument(
+        "--strict-type-check-only",
+        action="store_true",
+        help="Require @type_check_only on private types that are not present at runtime",
     )
     parser.add_argument(
         "--allowlist",
