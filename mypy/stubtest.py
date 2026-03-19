@@ -444,6 +444,7 @@ def verify_mypyfile(
         ):
             # Skip private names that don't exist at runtime and which cannot
             # be marked with @type_check_only.
+            print("-- skipping", entry)
             continue
         try:
             runtime_entry = getattr(runtime, entry, MISSING)
