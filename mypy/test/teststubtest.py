@@ -256,7 +256,7 @@ def collect_cases(fn: Callable[..., Iterator[Case]]) -> Callable[..., None]:
         output = run_stubtest(
             stub="\n\n".join(textwrap.dedent(c.stub.lstrip("\n")) for c in cases),
             runtime="\n\n".join(textwrap.dedent(c.runtime.lstrip("\n")) for c in cases),
-            options=["--generate-allowlist"],
+            options=["--generate-allowlist", "--strict-type-check-only"],
         )
 
         actual_errors = set(output.splitlines())
