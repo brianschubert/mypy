@@ -2432,10 +2432,10 @@ def test_stubs(args: _Arguments, use_builtins_fixtures: bool = False) -> int:
                 continue
             if args.ignore_disjoint_bases and error.is_disjoint_base_related():
                 continue
+            if not args.strict_type_check_only and error.is_private_type_check_only_related():
+                continue
             if error.object_desc in allowlist:
                 allowlist[error.object_desc] = True
-                continue
-            if not args.strict_type_check_only and error.is_private_type_check_only_related():
                 continue
             is_allowlisted = False
             for w in allowlist:
